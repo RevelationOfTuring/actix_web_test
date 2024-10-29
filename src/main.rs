@@ -2,7 +2,8 @@ use std::sync::Mutex;
 mod app;
 mod test;
 
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{get, post, web, App, HttpRequest, HttpResponse, HttpServer, Responder, Result};
+use serde::Deserialize;
 
 #[get("/")]
 async fn say_hello() -> impl Responder {
@@ -80,39 +81,77 @@ async fn main() -> std::io::Result<()> {
     // .run()
     // .await
 
-    HttpServer::new(|| {
-        App::new()
-            .configure(app::config)
-            .service(web::scope("/api").configure(test::scoped_config))
-            .route(
-                "/",
-                web::get().to(|| async { HttpResponse::Ok().body("/") }),
-            )
-    })
-    .bind(("127.0.0.1", 8080))?
-    .run()
-    .await
+    // configure
+    // HttpServer::new(|| {
+    //     App::new()
+    //         .configure(app::config)
+    //         .service(web::scope("/api").configure(test::scoped_config))
+    //         .route(
+    //             "/",
+    //             web::get().to(|| async { HttpResponse::Ok().body("/") }),
+    //         )
+    // })
+    // .bind(("127.0.0.1", 8080))?
+    // .run()
+    // .await
+
+    HttpServer::new(|| App::new().service(info11))
+        .bind("127.0.0.1:8080")?
+        .run()
+        .await
 }
 
-#[get("/s11")]
-async fn s11() -> String {
-    "s11".into()
-}
+// non-type-safe alternative, it's also possible to query
+#[get("/michael/{age}/{name}")]
+async fn info11(req: HttpRequest) -> Result<String> {
+    let age = req.match_info().get("age").unwrap().parse::<u8>().unwrap();
+    let name = req
+        .match_info()
+        .get("name")
+        .unwrap()
+        .parse::<String>()
+        .unwrap();
 
-#[get("/s12")]
-async fn s12() -> String {
-    "s12".into()
+    Ok(format!("name:{name} age:{age}"))
 }
+// //  to extract path information to a type that implements the Deserialize trait from serde
+// #[derive(Deserialize)]
+// struct Info {
+//     name: String,
+//     age: u8,
+// }
 
-#[get("/s21")]
-async fn s21() -> String {
-    "s21".into()
-}
+// #[get("/michael/{age}/{name}")]
+// async fn info(path: web::Path<Info>) -> Result<String> {
+//     Ok(format!("{}--{}", path.name, path.age))
+// }
 
-#[get("/s22")]
-async fn s22() -> String {
-    "s22".into()
-}
+// path
+// #[get("michael/{user_id}/{name}/{b}")]
+// async fn info(path: web::Path<(u32, String, bool)>) -> Result<String> {
+//     let (a, b, c) = path.into_inner();
+//     Ok(format!("==={a} {b} {c}==="))
+// }
+
+// #[get("/s11")]
+// async fn s11() -> String {
+//     "s11".into()
+// }
+
+// #[get("/s12")]
+// async fn s12() -> String {
+//     "s12".into()
+// }
+
+// #[get("/s21")]
+// async fn s21() -> String {
+//     "s21".into()
+// }
+
+// #[get("/s22")]
+// async fn s22() -> String {
+//     "s22".into()
+// }
 
 // // shared mutable state
 // struct AppStateWithCounter {
