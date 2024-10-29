@@ -95,25 +95,38 @@ async fn main() -> std::io::Result<()> {
     // .run()
     // .await
 
-    HttpServer::new(|| App::new().service(info11))
+    HttpServer::new(|| App::new().service(info))
         .bind("127.0.0.1:8080")?
         .run()
         .await
 }
 
-// non-type-safe alternative, it's also possible to query
-#[get("/michael/{age}/{name}")]
-async fn info11(req: HttpRequest) -> Result<String> {
-    let age = req.match_info().get("age").unwrap().parse::<u8>().unwrap();
-    let name = req
-        .match_info()
-        .get("name")
-        .unwrap()
-        .parse::<String>()
-        .unwrap();
-
-    Ok(format!("name:{name} age:{age}"))
+#[derive(Deserialize)]
+struct Info {
+    age: u32,
+    name: String,
+    b: bool,
 }
+
+// http://127.0.0.1:8080/michael?age=1024&name=12a3&b=false
+#[get("/michael")]
+async fn info(info: web::Query<Info>) -> String {
+    format!("{} {} {}", info.name, info.age, info.b)
+}
+
+// non-type-safe alternative, it's also possible to query
+// #[get("/michael/{age}/{name}")]
+// async fn info11(req: HttpRequest) -> Result<String> {
+//     let age = req.match_info().get("age").unwrap().parse::<u8>().unwrap();
+//     let name = req
+//         .match_info()
+//         .get("name")
+//         .unwrap()
+//         .parse::<String>()
+//         .unwrap();
+
+//     Ok(format!("name:{name} age:{age}"))
+// }
 // //  to extract path information to a type that implements the Deserialize trait from serde
 // #[derive(Deserialize)]
 // struct Info {
