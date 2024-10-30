@@ -101,6 +101,8 @@ async fn main() -> std::io::Result<()> {
         .await
 }
 
+
+// json
 #[derive(Deserialize)]
 struct Info {
     age: u32,
@@ -108,11 +110,25 @@ struct Info {
     b: bool,
 }
 
-// http://127.0.0.1:8080/michael?age=1024&name=12a3&b=false
-#[get("/michael")]
-async fn info(info: web::Query<Info>) -> String {
+// http://127.0.0.1:8080/michael/submit with body `{"b":false,"name":"michael","age":123}`
+#[post("michael/submit")]
+async fn info(info: web::Json<Info>) -> String {
     format!("{} {} {}", info.name, info.age, info.b)
 }
+
+// query
+// #[derive(Deserialize)]
+// struct Info {
+//     age: u32,
+//     name: String,
+//     b: bool,
+// }
+
+// // http://127.0.0.1:8080/michael?age=1024&name=12a3&b=false
+// #[get("/michael")]
+// async fn info(info: web::Query<Info>) -> String {
+//     format!("{} {} {}", info.name, info.age, info.b)
+// }
 
 // non-type-safe alternative, it's also possible to query
 // #[get("/michael/{age}/{name}")]
